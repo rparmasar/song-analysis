@@ -2,7 +2,7 @@ from time import perf_counter
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import ElasticNet, PoissonRegressor
 from sklearn.model_selection import GridSearchCV
 
@@ -15,6 +15,11 @@ LINEAR_MODELS_GRID_SEARCH_PARAMS = {
 RANDOM_FOREST_GRID_SEARCH_PARAMS = {
     "n_estimators": range(100, 550, 50),
     "max_depth": range(4, 8),
+}
+
+HIST_GBM_GRID_SEARCH_PARAMS = {
+    "max_iter": range(100, 700, 100),
+    "max_features": np.linspace(0.4, 1.0, 6),
 }
 
 
@@ -122,5 +127,35 @@ def fit_random_forest(
     return rf_regressor_grid_search.best_estimator_
 
 
-def fit_hist_gbm(train_features: pd.DataFrame, train_response: pd.DataFrame):
-    pass
+def fit_hist_gbm(
+    train_features: pd.DataFrame,
+    train_response: pd.DataFrame,
+    grid_search_params: dict[str, any] = HIST_GBM_GRID_SEARCH_PARAMS,
+    print_model_fitting_logs: bool = False,
+) -> HistGradientBoostingRegressor:
+    """
+    fits a histogram-based gradient boosting model (with poisson criteria) and returns the best model using 5-fold cv.
+
+    this is scikit-learn's take on LightGBM.
+    """
+    print("[fit_hist_gbm] starting fitting procedure")
+
+    hgbr_grid_search = GridSearchCV(
+        estimator=HistGradientBoostingRegressor(loss="poisson"),
+        param_grid=grid_search_params,
+        scoring="neg_root_mean_squared_error",
+        cv=5,
+        verbose=2 if print_model_fitting_logs else 0,
+    )
+    start_time = perf_counter()
+    hgbr_grid_search.fit(train_features, train_response["popularity"])
+    end_time = perf_counter()
+
+    print(
+        f"[fit_hist_gbm] total train time: {round(end_time - start_time, ndigits=3)} seconds"
+    )
+
+    print(f"[fit_hist_gbm] best parameters: {hgbr_grid_search.best_params_}")
+    print(f"[fit_hist_gbm] best rmse: {-hgbr_grid_search.best_score_}")
+
+    return hgbr_grid_search.best_estimator_

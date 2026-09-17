@@ -29,3 +29,5 @@ FEATURE_DTYPE_MAP = {
     "key": "category",
     "release_year": "int64",
 }
+
+CATEGORICAL_COLS = ["mode", "key", "time_signature"]

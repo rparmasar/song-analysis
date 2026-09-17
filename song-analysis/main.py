@@ -2,16 +2,15 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
 from src.data_processing import (
     FEATURE_DTYPE_MAP,
     TARGET_AUDIO_FEATURE_LIST,
     TARGET_RESPONSE,
     TRACK_METADATA_FEATURE_LIST,
 )
-from src.data_processing.base_transforms import split_and_scale_dataset
+from src.data_processing.base_transforms import split_encode_and_scale_dataset
 from src.data_processing.feature_transforms import create_common_features
-from src.model_training.fit_model import fit_random_forest
+from src.model_training.fit_model import fit_hist_gbm
 
 
 def main():
@@ -45,27 +44,19 @@ def main():
 
     # split into train/test split and apply scaling
     (
-        base_train_features,
-        base_test_features,
+        train_features,
+        test_features,
         train_response,
         test_response,
         mm_scaler,
-    ) = split_and_scale_dataset(
+        encoder,
+    ) = split_encode_and_scale_dataset(
         df=modelling_df,
-        test_set_ratio=0.8,
+        test_set_ratio=0.2,
         seed=200294814,
     )
     print(
-        f"[main] split data into base train/test with shapes {base_train_features.shape=}, {base_test_features.shape=}, {train_response.shape=}, {test_response.shape=}"
-    )
-
-    # now apply one-hot encoding
-    encoder = OneHotEncoder(handle_unknown="ignore")
-    train_features = encoder.fit_transform(base_train_features)
-    test_features = encoder.transform(base_test_features)
-
-    print(
-        f"[main] fitted onehot encoder and transformed base train/test data with shapes {train_features.shape=}, {test_features.shape=}"
+        f"[main] split, encoded and scaled data into train/test with shapes {train_features.shape=}, {test_features.shape=}, {train_response.shape=}, {test_response.shape=}"
     )
 
     # save scaler and encoder for later use
@@ -91,7 +82,15 @@ def main():
     #     train_features=train_features,
     #     train_response=train_response,
     # )
-    all_features_random_forest_model = fit_random_forest(
+
+    ## random forest
+    # all_features_random_forest_model = fit_random_forest(
+    #     train_features=train_features,
+    #     train_response=train_response,
+    # )
+
+    ## histogram-based gbm
+    all_features_hist_gbm = fit_hist_gbm(
         train_features=train_features,
         train_response=train_response,
     )
