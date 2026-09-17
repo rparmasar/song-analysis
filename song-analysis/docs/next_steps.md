@@ -12,8 +12,8 @@ the remaining work to wrap this one up.
 
 * organize notebook to make it better presented namely,  
 
-    * add findings from response distribution section
-    * add notes on correlation plot
+    * [done] add findings from response distribution section
+    * [done] add notes on correlation plot
     * add note on why some columns were dropped (likely due to redundant info)
     * add a note on why RMSE and R^2 used to evaluate models
 
