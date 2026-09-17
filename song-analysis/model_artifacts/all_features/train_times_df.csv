@@ -1,0 +1,5 @@
+model,train_time
+elastic_net,6.341632399002265
+poisson_glm,91.44345929799965
+random_forest,282.6811606320007
+hist_gbm,61.797041693997016
