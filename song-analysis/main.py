@@ -11,6 +11,7 @@ from src.data_processing import (
 )
 from src.data_processing.base_transforms import split_and_scale_dataset
 from src.data_processing.feature_transforms import create_common_features
+from src.model_training.fit_model import fit_elastic_net
 
 
 def main():
@@ -46,8 +47,8 @@ def main():
     (
         base_train_features,
         base_test_features,
-        base_train_response,
-        base_test_response,
+        train_response,
+        test_response,
         mm_scaler,
     ) = split_and_scale_dataset(
         df=modelling_df,
@@ -55,7 +56,7 @@ def main():
         seed=200294814,
     )
     print(
-        f"[main] split data into base train/test with shapes {base_train_features.shape=}, {base_test_features.shape=}, {base_train_response.shape=}, {base_test_response.shape=}"
+        f"[main] split data into base train/test with shapes {base_train_features.shape=}, {base_test_features.shape=}, {train_response.shape=}, {test_response.shape=}"
     )
 
     # now apply one-hot encoding
@@ -79,6 +80,11 @@ def main():
     )
 
     # model fitting (all features)
+    ## elastic net
+    all_features_elastic_net_model = fit_elastic_net(
+        train_features=train_features,
+        train_response=train_response,
+    )
 
 
 if __name__ == "__main__":
