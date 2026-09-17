@@ -2,6 +2,7 @@ from time import perf_counter
 
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import ElasticNet, PoissonRegressor
 from sklearn.model_selection import GridSearchCV
 
@@ -9,6 +10,11 @@ from sklearn.model_selection import GridSearchCV
 LINEAR_MODELS_GRID_SEARCH_PARAMS = {
     "alpha": np.linspace(start=0.1, stop=1, num=20),
     "l1_ratio": np.linspace(start=0.1, stop=1, num=20),
+}
+
+RANDOM_FOREST_GRID_SEARCH_PARAMS = {
+    "n_estimators": range(100, 550, 50),
+    "max_depth": range(4, 8),
 }
 
 
@@ -82,9 +88,39 @@ def fit_poisson_glm(
     return pglm_grid_search.best_estimator_
 
 
-def fit_random_forest(train_features: pd.DataFrame, train_response: pd.DataFrame):
-    pass
+def fit_random_forest(
+    train_features: pd.DataFrame,
+    train_response: pd.DataFrame,
+    grid_search_params: dict[str, any] = RANDOM_FOREST_GRID_SEARCH_PARAMS,
+    print_model_fitting_logs: bool = False,
+) -> RandomForestRegressor:
+    """
+    fits a random forest (with poisson criteria) and returns the best model using 5-fold cv
+    """
+    print("[fit_random_forest] starting fitting procedure")
+
+    rf_regressor_grid_search = GridSearchCV(
+        estimator=RandomForestRegressor(criterion="poisson"),
+        param_grid=grid_search_params,
+        scoring="neg_root_mean_squared_error",
+        cv=5,
+        verbose=2 if print_model_fitting_logs else 0,
+    )
+    start_time = perf_counter()
+    rf_regressor_grid_search.fit(train_features, train_response["popularity"])
+    end_time = perf_counter()
+
+    print(
+        f"[fit_random_forest] total train time: {round(end_time - start_time, ndigits=3)} seconds"
+    )
+
+    print(
+        f"[fit_random_forest] best parameters: {rf_regressor_grid_search.best_params_}"
+    )
+    print(f"[fit_random_forest] best rmse: {-rf_regressor_grid_search.best_score_}")
+
+    return rf_regressor_grid_search.best_estimator_
 
 
-def fit_light_gbm(train_features: pd.DataFrame, train_response: pd.DataFrame):
+def fit_hist_gbm(train_features: pd.DataFrame, train_response: pd.DataFrame):
     pass

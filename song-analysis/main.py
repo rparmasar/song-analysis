@@ -11,7 +11,7 @@ from src.data_processing import (
 )
 from src.data_processing.base_transforms import split_and_scale_dataset
 from src.data_processing.feature_transforms import create_common_features
-from src.model_training.fit_model import fit_poisson_glm
+from src.model_training.fit_model import fit_random_forest
 
 
 def main():
@@ -87,7 +87,11 @@ def main():
     # )
 
     ## poisson glm
-    all_features_poisson_glm = fit_poisson_glm(
+    # all_features_poisson_glm = fit_poisson_glm(
+    #     train_features=train_features,
+    #     train_response=train_response,
+    # )
+    all_features_random_forest_model = fit_random_forest(
         train_features=train_features,
         train_response=train_response,
     )
