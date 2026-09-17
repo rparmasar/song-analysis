@@ -28,9 +28,9 @@ def split_and_scale_dataset(
     response_col: str = TARGET_RESPONSE,
     test_set_ratio: float = 0.8,
     seed=22020020212314,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, MinMaxScaler]:
     """
-    Splits the dataset into training and testing sets, then scales the features.
+    Splits the dataset into training and testing sets, then scales the features. Also returns the fitted scaler
     """
     # remove response from incoming df before splitting
     train_features, test_features, train_response, test_response = train_test_split(
@@ -46,4 +46,10 @@ def split_and_scale_dataset(
 
     test_features_scaled = mm_scaler.transform(test_features)
 
-    return train_features_scaled, test_features_scaled, train_response, test_response
+    return (
+        train_features_scaled,
+        test_features_scaled,
+        train_response,
+        test_response,
+        mm_scaler,
+    )

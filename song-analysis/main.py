@@ -1,4 +1,8 @@
+from pathlib import Path
+
+import joblib
 import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
 from src.data_processing import (
     FEATURE_DTYPE_MAP,
     TARGET_AUDIO_FEATURE_LIST,
@@ -25,7 +29,7 @@ def main():
         f"[main] created features to produce dataset with shape {base_modelling_df.shape=}"
     )
 
-    # subset columns, apply type transforms and apply one-hot encoding
+    # subset columns and apply type transforms
     RELEVANT_COLS = [
         *TARGET_AUDIO_FEATURE_LIST,
         *TRACK_METADATA_FEATURE_LIST,
@@ -33,25 +37,48 @@ def main():
     ]
     modelling_df = base_modelling_df[RELEVANT_COLS]
     modelling_df = modelling_df.astype(FEATURE_DTYPE_MAP)
-    modelling_df = pd.get_dummies(modelling_df)
 
     print(
         f"[main] finished pre-processing dataset with shape {modelling_df.shape=} and the following full list of features - {list(modelling_df.columns)}"
     )
 
     # split into train/test split and apply scaling
-    train_features, test_features, train_response, test_response = (
-        split_and_scale_dataset(
-            df=modelling_df,
-            test_set_ratio=0.8,
-            seed=200294814,
-        )
+    (
+        base_train_features,
+        base_test_features,
+        base_train_response,
+        base_test_response,
+        mm_scaler,
+    ) = split_and_scale_dataset(
+        df=modelling_df,
+        test_set_ratio=0.8,
+        seed=200294814,
     )
     print(
-        f"[main] split data into train/test with shapes {train_features.shape=}, {test_features.shape=}, {train_response.shape=}, {test_response.shape=}"
+        f"[main] split data into base train/test with shapes {base_train_features.shape=}, {base_test_features.shape=}, {base_train_response.shape=}, {base_test_response.shape=}"
     )
 
-    # model fitting
+    # now apply one-hot encoding
+    encoder = OneHotEncoder(handle_unknown="ignore")
+    train_features = encoder.fit_transform(base_train_features)
+    test_features = encoder.transform(base_test_features)
+
+    print(
+        f"[main] fitted onehot encoder and transformed base train/test data with shapes {train_features.shape=}, {test_features.shape=}"
+    )
+
+    # save scaler and encoder for later use
+    BASE_MODEL_ARTIFACTS_PATH = Path("song-analysis") / "model_artifacts"
+    joblib.dump(mm_scaler, f"{BASE_MODEL_ARTIFACTS_PATH}/fitted_scaler.joblib")
+    print(
+        f"[main] saved fitted scaler to disk at {BASE_MODEL_ARTIFACTS_PATH}/fitted_scaler.joblib"
+    )
+    joblib.dump(encoder, f"{BASE_MODEL_ARTIFACTS_PATH}/fitted_encoder.joblib")
+    print(
+        f"[main] saved fitted encoder to disk at {BASE_MODEL_ARTIFACTS_PATH}/fitted_encoder.joblib"
+    )
+
+    # model fitting (all features)
 
 
 if __name__ == "__main__":
