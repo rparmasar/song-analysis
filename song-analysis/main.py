@@ -11,7 +11,7 @@ from src.data_processing import (
 )
 from src.data_processing.base_transforms import split_and_scale_dataset
 from src.data_processing.feature_transforms import create_common_features
-from src.model_training.fit_model import fit_elastic_net
+from src.model_training.fit_model import fit_poisson_glm
 
 
 def main():
@@ -81,7 +81,13 @@ def main():
 
     # model fitting (all features)
     ## elastic net
-    all_features_elastic_net_model = fit_elastic_net(
+    # all_features_elastic_net_model = fit_elastic_net(
+    #     train_features=train_features,
+    #     train_response=train_response,
+    # )
+
+    ## poisson glm
+    all_features_poisson_glm = fit_poisson_glm(
         train_features=train_features,
         train_response=train_response,
     )

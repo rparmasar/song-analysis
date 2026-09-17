@@ -6,20 +6,20 @@ from sklearn.linear_model import ElasticNet, PoissonRegressor
 from sklearn.model_selection import GridSearchCV
 
 # training constants
-ELASTIC_NET_GRID_SEARCH_PARAMS = {
-    "alpha": np.linspace(start=0.1, stop=1, num=50),
-    "l1_ratio": np.linspace(start=0.1, stop=1, num=50),
+LINEAR_MODELS_GRID_SEARCH_PARAMS = {
+    "alpha": np.linspace(start=0.1, stop=1, num=20),
+    "l1_ratio": np.linspace(start=0.1, stop=1, num=20),
 }
 
 
 def fit_elastic_net(
     train_features: pd.DataFrame,
     train_response: pd.DataFrame,
-    grid_search_params: dict[str, any] = ELASTIC_NET_GRID_SEARCH_PARAMS,
+    grid_search_params: dict[str, any] = LINEAR_MODELS_GRID_SEARCH_PARAMS,
     print_model_fitting_logs: bool = False,
 ) -> ElasticNet:
     """
-    fits an elastic net with RMSE as objective and returns the best model using 5-fold CV
+    fits an elastic net (normal linear regression with penalty params) with RMSE as objective and returns the best model using 5-fold CV
     """
     print("[fit_elastic_net] starting fitting procedure")
     # init grid search
@@ -47,9 +47,39 @@ def fit_elastic_net(
 
 
 def fit_poisson_glm(
-    train_features: pd.DataFrame, train_response: pd.DataFrame
+    train_features: pd.DataFrame,
+    train_response: pd.DataFrame,
+    grid_search_params: dict[str, any] | None = None,
+    print_model_fitting_logs: bool = False,
 ) -> PoissonRegressor:
-    pass
+    """
+    fits a poisson glm with RMSE as objective and returns the best model using 5-fold CV
+    """
+    print("[fit_poisson_glm] starting fitting procedure")
+    if grid_search_params is None:
+        grid_search_params = {
+            "alpha": LINEAR_MODELS_GRID_SEARCH_PARAMS["alpha"],
+        }
+
+    pglm_grid_search = GridSearchCV(
+        estimator=PoissonRegressor(),
+        param_grid=grid_search_params,
+        scoring="neg_mean_squared_log_error",
+        cv=5,
+        verbose=2 if print_model_fitting_logs else 0,
+    )
+
+    start_time = perf_counter()
+    pglm_grid_search.fit(X=train_features, y=train_response["popularity"])
+    end_time = perf_counter()
+    print(
+        f"[fit_poisson_glm] total train time: {round(end_time - start_time, ndigits=3)} seconds"
+    )
+
+    print(f"[fit_poisson_glm] best parameters: {pglm_grid_search.best_params_}")
+    print(f"[fit_poisson_glm] best rmse: {-pglm_grid_search.best_score_}")
+
+    return pglm_grid_search.best_estimator_
 
 
 def fit_random_forest(train_features: pd.DataFrame, train_response: pd.DataFrame):
