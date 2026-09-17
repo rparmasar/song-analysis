@@ -26,6 +26,7 @@ HIST_GBM_GRID_SEARCH_PARAMS = {
 def fit_elastic_net(
     train_features: pd.DataFrame,
     train_response: pd.DataFrame,
+    features_to_train_on: list[str] | None = None,
     grid_search_params: dict[str, any] = LINEAR_MODELS_GRID_SEARCH_PARAMS,
     print_model_fitting_logs: bool = False,
 ) -> ElasticNet:
@@ -43,7 +44,12 @@ def fit_elastic_net(
     )
     start_time = perf_counter()
     # fit Models
-    elastic_net_grid_search.fit(X=train_features, y=train_response)
+    elastic_net_grid_search.fit(
+        X=train_features[features_to_train_on]
+        if features_to_train_on
+        else train_features,
+        y=train_response,
+    )
     end_time = perf_counter()
     # log best results
     print(
@@ -60,6 +66,7 @@ def fit_elastic_net(
 def fit_poisson_glm(
     train_features: pd.DataFrame,
     train_response: pd.DataFrame,
+    features_to_train_on: list[str] | None = None,
     grid_search_params: dict[str, any] | None = None,
     print_model_fitting_logs: bool = False,
 ) -> PoissonRegressor:
@@ -81,7 +88,12 @@ def fit_poisson_glm(
     )
 
     start_time = perf_counter()
-    pglm_grid_search.fit(X=train_features, y=train_response["popularity"])
+    pglm_grid_search.fit(
+        X=train_features[features_to_train_on]
+        if features_to_train_on
+        else train_features,
+        y=train_response["popularity"],
+    )
     end_time = perf_counter()
     print(
         f"[fit_poisson_glm] total train time: {round(end_time - start_time, ndigits=3)} seconds"
@@ -96,6 +108,7 @@ def fit_poisson_glm(
 def fit_random_forest(
     train_features: pd.DataFrame,
     train_response: pd.DataFrame,
+    features_to_train_on: list[str] | None = None,
     grid_search_params: dict[str, any] = RANDOM_FOREST_GRID_SEARCH_PARAMS,
     print_model_fitting_logs: bool = False,
 ) -> RandomForestRegressor:
@@ -112,7 +125,12 @@ def fit_random_forest(
         verbose=2 if print_model_fitting_logs else 0,
     )
     start_time = perf_counter()
-    rf_regressor_grid_search.fit(train_features, train_response["popularity"])
+    rf_regressor_grid_search.fit(
+        X=train_features[features_to_train_on]
+        if features_to_train_on
+        else train_features,
+        y=train_response["popularity"],
+    )
     end_time = perf_counter()
 
     print(
@@ -130,6 +148,7 @@ def fit_random_forest(
 def fit_hist_gbm(
     train_features: pd.DataFrame,
     train_response: pd.DataFrame,
+    features_to_train_on: list[str] | None = None,
     grid_search_params: dict[str, any] = HIST_GBM_GRID_SEARCH_PARAMS,
     print_model_fitting_logs: bool = False,
 ) -> HistGradientBoostingRegressor:
@@ -148,7 +167,12 @@ def fit_hist_gbm(
         verbose=2 if print_model_fitting_logs else 0,
     )
     start_time = perf_counter()
-    hgbr_grid_search.fit(train_features, train_response["popularity"])
+    hgbr_grid_search.fit(
+        X=train_features[features_to_train_on]
+        if features_to_train_on
+        else train_features,
+        y=train_response["popularity"],
+    )
     end_time = perf_counter()
 
     print(
