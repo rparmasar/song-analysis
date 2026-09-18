@@ -54,10 +54,14 @@ def split_encode_and_scale_dataset(
 
     # convert above back to dataframes
     encoded_train_features_df = pd.DataFrame(
-        encoded_train_features, columns=encoder.get_feature_names_out()
+        encoded_train_features,
+        columns=encoder.get_feature_names_out(),
+        index=train_features.index,
     )
     encoded_test_features_df = pd.DataFrame(
-        encoded_test_features, columns=encoder.get_feature_names_out()
+        encoded_test_features,
+        columns=encoder.get_feature_names_out(),
+        index=test_features.index,
     )
 
     # fit scaling on train and apply on test (for numerical cols only)
@@ -71,10 +75,14 @@ def split_encode_and_scale_dataset(
 
     # convert back to dataframes
     scaled_train_features_df = pd.DataFrame(
-        scaled_train_features, columns=mm_scaler.get_feature_names_out()
+        scaled_train_features,
+        columns=mm_scaler.get_feature_names_out(),
+        index=train_features.index,
     )
     scaled_test_features_df = pd.DataFrame(
-        scaled_test_features, columns=mm_scaler.get_feature_names_out()
+        scaled_test_features,
+        columns=mm_scaler.get_feature_names_out(),
+        index=test_features.index,
     )
 
     # reassemble

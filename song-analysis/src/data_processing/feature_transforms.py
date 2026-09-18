@@ -5,8 +5,6 @@ from statistics import mean
 
 import pandas as pd
 
-from src.data_processing import FEATURE_DTYPE_MAP
-
 
 def get_main_artist(artist_names: "list[str]") -> str:
     return artist_names.split("|")[0]
@@ -29,9 +27,7 @@ def get_release_year(date_str: str) -> int:
     return date_str.split("-")[0]
 
 
-def create_common_features(
-    track_df: pd.DataFrame, dtype_map: dict = FEATURE_DTYPE_MAP
-) -> pd.DataFrame:
+def create_common_features(track_df: pd.DataFrame) -> pd.DataFrame:
     """
     applies all the transforms above to the incoming `track_df` and onehot encodes the categorical columns
     """

@@ -24,10 +24,11 @@ def compute_model_performance(
     test_rmse = root_mean_squared_error(test_response, test_predictions)
 
     metrics_dict = {
-        "train_r2": train_r2,
         "train_rmse": train_rmse,
-        "test_r2": test_r2,
+        "train_r2": train_r2,
         "test_rmse": test_rmse,
+        "test_r2": test_r2,
+        "training_time_seconds": train_time,
     }
 
     # compute plot

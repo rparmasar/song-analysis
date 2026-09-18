@@ -3,7 +3,8 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from src.data_processing import (
-    FEATURE_DTYPE_MAP,
+    ALL_FEATURE_DTYPE_MAP,
+    AUDIO_FEATURE_DTYPE_MAP,
     TARGET_AUDIO_FEATURE_LIST,
     TARGET_RESPONSE,
     TRACK_METADATA_FEATURE_LIST,
@@ -21,6 +22,7 @@ from src.model_training.fit_model import (
 def main():
     # some path constants (change between audio and all features)
     BASE_MODEL_ARTIFACTS_PATH = Path("song-analysis") / "model_artifacts"
+    # MODEL_TYPE = "audio_features"
     MODEL_TYPE = "all_features"
     MODEL_ARTIFACTS_PATH = BASE_MODEL_ARTIFACTS_PATH / MODEL_TYPE
 
@@ -33,6 +35,11 @@ def main():
         ]
         if MODEL_TYPE == "all_features"
         else [*TARGET_AUDIO_FEATURE_LIST, TARGET_RESPONSE]
+    )
+    RELEVANT_DTYPE_MAP = (
+        ALL_FEATURE_DTYPE_MAP
+        if MODEL_TYPE == "all_features"
+        else AUDIO_FEATURE_DTYPE_MAP
     )
 
     # load data
@@ -52,7 +59,7 @@ def main():
 
     # subset columns and apply type transforms
     modelling_df = base_modelling_df[RELEVANT_COLS]
-    modelling_df = modelling_df.astype(FEATURE_DTYPE_MAP)
+    modelling_df = modelling_df.astype(RELEVANT_DTYPE_MAP)
 
     print(
         f"[main] finished pre-processing dataset with shape {modelling_df.shape=} and the following full list of features - {list(modelling_df.columns)}"
@@ -71,6 +78,7 @@ def main():
         test_set_ratio=0.2,
         seed=200294814,
     )
+
     print(
         f"[main] split, encoded and scaled data into train/test with shapes {train_features.shape=}, {test_features.shape=}, {train_response.shape=}, {test_response.shape=}"
     )
@@ -85,65 +93,76 @@ def main():
         f"[main] saved fitted encoder to disk at {MODEL_ARTIFACTS_PATH}/fitted_encoder.joblib"
     )
 
-    # model fitting (all features)
+    # also save train/test data
+    train_features.to_csv(f"{MODEL_ARTIFACTS_PATH}/train_features.csv")
+    train_response.to_csv(f"{MODEL_ARTIFACTS_PATH}/train_response.csv")
+    test_features.to_csv(f"{MODEL_ARTIFACTS_PATH}/test_features.csv")
+    test_response.to_csv(f"{MODEL_ARTIFACTS_PATH}/test_response.csv")
+
+    # model fitting
     ## elastic net
-    all_features_elastic_net_model, all_features_elastic_net_model_train_time = (
-        fit_elastic_net(
-            train_features=train_features,
-            train_response=train_response,
-        )
+    elastic_net_model, elastic_net_model_train_time = fit_elastic_net(
+        train_features=train_features,
+        train_response=train_response,
     )
 
     ## poisson glm
-    all_features_poisson_glm, all_features_poisson_glm_train_time = fit_poisson_glm(
+    poisson_glm, poisson_glm_train_time = fit_poisson_glm(
         train_features=train_features,
         train_response=train_response,
     )
 
     ## random forest
-    all_features_random_forest_model, all_features_random_forest_model_train_time = (
-        fit_random_forest(
-            train_features=train_features,
-            train_response=train_response,
-        )
+    random_forest_model, random_forest_model_train_time = fit_random_forest(
+        train_features=train_features,
+        train_response=train_response,
     )
 
     ## histogram-based gbm
-    all_features_hist_gbm, all_features_hist_gbm_train_time = fit_hist_gbm(
+    hist_gbm, hist_gbm_train_time = fit_hist_gbm(
         train_features=train_features,
         train_response=train_response,
     )
 
     ## save these to evaluate in notebook
-    ALL_FEATURES_MODELS = {
-        "elastic_net": all_features_elastic_net_model,
-        "poisson_glm": all_features_poisson_glm,
-        "random_forest": all_features_random_forest_model,
-        "hist_gbm": all_features_hist_gbm,
+    MODELS = {
+        "elastic_net": elastic_net_model,
+        "poisson_glm": poisson_glm,
+        "random_forest": random_forest_model,
+        "hist_gbm": hist_gbm,
     }
 
     train_time_df = pd.DataFrame(
         {
-            "model": ALL_FEATURES_MODELS.keys(),
+            "model": MODELS.keys(),
             "train_time": [
-                all_features_elastic_net_model_train_time,
-                all_features_poisson_glm_train_time,
-                all_features_random_forest_model_train_time,
-                all_features_hist_gbm_train_time,
+                elastic_net_model_train_time,
+                poisson_glm_train_time,
+                random_forest_model_train_time,
+                hist_gbm_train_time,
+            ],
+            "best_params": [
+                elastic_net_model.get_params(),
+                poisson_glm.get_params(),
+                random_forest_model.get_params(),
+                hist_gbm.get_params(),
             ],
         }
     )
 
     train_time_df.to_csv(MODEL_ARTIFACTS_PATH / "train_times_df.csv", index=False)
 
-    for model_name, model in ALL_FEATURES_MODELS.items():
+    for model_name, model in MODELS.items():
         joblib.dump(model, MODEL_ARTIFACTS_PATH / f"{model_name}_model.joblib")
         print(
             f"[main] saved {model_name=} to {MODEL_ARTIFACTS_PATH / f'{model_name}_model.joblib'}"
         )
 
     print(
-        f"[main] finished training models and saving artifacts. final training times: {train_time_df}"
+        "[main] finished training models and saving artifacts"
+        f"[main] final training times:\n {train_time_df}",
+        f"[main] total training time {sum(train_time_df['train_time']) / 60:.2f} minutes",
+        sep="\n",
     )
 
 

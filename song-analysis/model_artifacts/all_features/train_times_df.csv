@@ -1,5 +1,5 @@
-model,train_time
-elastic_net,6.341632399002265
-poisson_glm,91.44345929799965
-random_forest,282.6811606320007
-hist_gbm,61.797041693997016
+model,train_time,best_params
+elastic_net,7.073180743005651,"{'alpha': 0.1, 'copy_X': True, 'fit_intercept': True, 'l1_ratio': 1.0, 'max_iter': 1000, 'positive': False, 'precompute': False, 'random_state': None, 'selection': 'cyclic', 'tol': 0.0001, 'warm_start': False}"
+poisson_glm,64.50686294999468,"{'alpha': 0.1, 'fit_intercept': True, 'max_iter': 100, 'solver': 'lbfgs', 'tol': 0.0001, 'verbose': 0, 'warm_start': False}"
+random_forest,288.35917023899674,"{'bootstrap': True, 'ccp_alpha': 0.0, 'criterion': 'poisson', 'max_depth': 7, 'max_features': 1.0, 'max_leaf_nodes': None, 'max_samples': None, 'min_impurity_decrease': 0.0, 'min_samples_leaf': 1, 'min_samples_split': 2, 'min_weight_fraction_leaf': 0.0, 'monotonic_cst': None, 'n_estimators': 200, 'n_jobs': None, 'oob_score': False, 'random_state': None, 'verbose': 0, 'warm_start': False}"
+hist_gbm,66.15883736500109,"{'categorical_features': 'warn', 'early_stopping': 'auto', 'interaction_cst': None, 'l2_regularization': 0.0, 'learning_rate': 0.1, 'loss': 'poisson', 'max_bins': 255, 'max_depth': None, 'max_features': 0.4, 'max_iter': 100, 'max_leaf_nodes': 31, 'min_samples_leaf': 20, 'monotonic_cst': None, 'n_iter_no_change': 10, 'quantile': None, 'random_state': None, 'scoring': 'loss', 'tol': 1e-07, 'validation_fraction': 0.1, 'verbose': 0, 'warm_start': False}"
