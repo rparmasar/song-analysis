@@ -1,5 +1,30 @@
 # song analysis summary
 
+- [song analysis summary](#song-analysis-summary)
+  - [tl;dr](#tldr)
+  - [Overview](#overview)
+  - [Data Sources](#data-sources)
+  - [Orchestrating the Pipeline](#orchestrating-the-pipeline)
+  - [Methodology](#methodology)
+    - [Model Selection Approach](#model-selection-approach)
+    - [Four Models Evaluated](#four-models-evaluated)
+      - [1. Elastic Net Linear Regression](#1-elastic-net-linear-regression)
+      - [2. Poisson GLM](#2-poisson-glm)
+      - [3. Random Forest with Poisson Criterion](#3-random-forest-with-poisson-criterion)
+      - [4. Hist-GBM (Histogram-Based Gradient Boosting)](#4-hist-gbm-histogram-based-gradient-boosting)
+    - [Best Model Selection](#best-model-selection)
+    - [Feature Importance Insights](#feature-importance-insights)
+  - [Scoring Dancehall Tracks](#scoring-dancehall-tracks)
+    - [Pre-processing Pipeline](#pre-processing-pipeline)
+    - [Score Distribution Findings](#score-distribution-findings)
+    - [SHAP Interpretability Insights](#shap-interpretability-insights)
+    - [Top 20 Tracks Analysis](#top-20-tracks-analysis)
+    - [Artists Who Gained Popularity](#artists-who-gained-popularity)
+  - [Key Conclusions](#key-conclusions)
+  - [Limitations](#limitations)
+  - [Improvements](#improvements)
+
+
 ## tl;dr
 
 The song analysis project built a machine learning model to predict Trinidad dancehall track popularity using hip-hop training data, trained four models and selected **hist-gbm**, which achieved **RMSE = 12.5** and **R² = 0.44** on the test set.
