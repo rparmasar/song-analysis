@@ -1,46 +1,48 @@
-# Song Analysis Project Summary
+# song analysis summary
 
 ## tl;dr
 
-The song analysis project built a machine learning model to predict Trinidad dancehall track popularity using hip-hop training data. We trained four models and selected **hist-gbm**, which achieved **RMSE = 12.5** and **R² = 0.44** on the test set.
+The song analysis project built a machine learning model to predict Trinidad dancehall track popularity using hip-hop training data, trained four models and selected **hist-gbm**, which achieved **RMSE = 12.5** and **R² = 0.44** on the test set.
 
-Applied to dancehall tracks, the model predicts that **75% of tracks score below 43 popularity** with a maximum predicted score of **76** (hip-hop baseline max: 96). SHAP analysis identifies `max_aggr_followers` and `release_year` as the top predictors. Notably, many top-scoring artists from our December 2023 dataset—including Squash, Byron Messia, and Teejay—have since achieved global success, confirming the model's predictive validity for emerging talent.
+Applied to dancehall tracks, the model predicts that **75% of tracks score below 43 popularity** with a maximum predicted score of **76** (hip-hop baseline max: 96). SHAP analysis identifies `max_aggr_followers` and `release_year` as the top predictors. 
 
----
+Notably, many top-scoring artists from our December 2023 dataset—including Squash, Byron Messia, Kraff, Tommy Lee Sparta, and Teejay—have since achieved global success, confirming the model's predictive validity for emerging talent.
+
 
 ## Overview
 
 Predicts popularity of Trinidad dancehall tracks using a model trained on hip-hop audio features. Four models evaluated: elastic net, poisson glm, random forest, hist-gbm. Selected `hist-gbm` as best performer with strong generalization.
 
----
 
 ## Data Sources
 
 Datasets sourced from [song-feature-extraction](https://github.com/rparmasar/song-feature-extraction) repository. Three CSV datasets in `song-analysis/data/`:
 
 - `hip_hop-track-attributes.csv` (training data)
-- `dancehall-hip-hop-track-attributes.csv`
 - `trini_dancehall-track-attributes.csv` (scoring target)
+- `dancehall-hip-hop-track-attributes.csv` (unused but a combined dataset of the other two)
 
-Pull new data from repository before re-running for fresh results.
+Pull new data from repository before re-running for fresh results. *(requires Spotify Premium subscription)*
 
----
 
 ## Orchestrating the Pipeline
 
-Single script entry point (`train_models.py`) that trains all four models. Loads hip-hop training data and applies common feature transforms (`create_common_features`). Splits dataset 80/20 with fixed seed (200294814) for reproducibility. Saves artifacts to `song-analysis/model_artifacts/all_features/`:
+Single script entry point (`train_models.py`) that trains all four models for a given feature set. 
+
+Loads hip-hop training data and applies common feature transforms (`create_common_features`). Splits dataset 80/20 with fixed seed (200294814) for reproducibility. Saves artifacts to `song-analysis/model_artifacts/all_features/`:
 
 - Trained models: `elastic_net_model.joblib`, `poisson_glm_model.joblib`, `random_forest_model.joblib`, `hist_gbm_model.joblib`
 - Splits: `train_features.csv`, `test_features.csv`, `train_response.csv`, `test_response.csv`
 - Scaling artifacts: `fitted_scaler.joblib`, `fitted_encoder.joblib`
 - Training metadata: `train_times_df.csv` (model training times and best params)
 
----
 
 ## Methodology
 
 ### Model Selection Approach
-Compare RMSE and R² scores between train and test sets. Visual inspection of prediction vs. observed distributions. Lower RMSE + higher R² = better performance. No overfitting if train/test metrics are similar.
+Compare RMSE and R² scores between train and test sets + visual inspection of prediction vs. observed distributions. 
+
+Lower RMSE + higher R² = better performance.
 
 ### Four Models Evaluated
 
@@ -82,7 +84,6 @@ SHAP analysis reveals strongest predictors:
 
 Threshold insight: ~11K followers needed before popularity drops significantly.
 
----
 
 ## Scoring Dancehall Tracks
 
@@ -110,7 +111,6 @@ Load fitted scaler and encoder from artifacts. Apply common feature transforms t
 ### Artists Who Gained Popularity
 Squash, Byron Messia, Teejay, Skeng, Kraff Gad, Intence, Valiant, Tommy Lee Sparta, Medz Boss, Chronic Law
 
----
 
 ## Key Conclusions
 
@@ -119,3 +119,23 @@ Squash, Byron Messia, Teejay, Skeng, Kraff Gad, Intence, Valiant, Tommy Lee Spar
 - Makes sense since popularity heavily influenced by Spotify's recommendation algorithm
 - Dancehall tracks show different scoring patterns than hip-hop baseline
 - Model demonstrates predictive validity for emerging artists
+
+## Limitations
+
+- The data was pulled on January 8, 2024, which may not reflect the current trends in both the dancehall and hip-hop genres.
+
+- The audio features used in modelling likely come from Spotify's internal models and so there is a risk of error compounding since we don't have a concrete understanding of how those features are generated.
+
+## Improvements
+
+- Re-doing this analysis with fresh data would be beneficial to ensure the results are more accurate and see if the assumption that hip-hop tracks can predict popularity still holds true amidst changes in the genre landscape.
+
+- Can explore creating new features using the more powerful LLMs of today, e.g.:
+
+    * Speech-to-Text models for generating lyrics (and then NLP techniques like embeddings or simpler bag of words approach to extract features).
+
+    * Can also explore Genius to fetch lyrics.
+
+    * Passing audio files to models and prompting for feature extraction.
+
+    
