@@ -1,0 +1,52 @@
+{
+  "project": "song-analysis",
+  "notebook_context_guide": {
+    "main.ipynb": {
+      "purpose": "Initial EDA - response distribution, feature correlations, model exploration",
+      "key_sections": [
+        "Response variable (popularity) distribution analysis",
+        "Audio feature vs popularity correlations",
+        "Feature redundancy discussions",
+        "LightGBM model selection rationale",
+        "Why RMSE and R2 for evaluation"
+      ],
+      "estimated_context_usage": "~18-20K tokens for full EDA narrative",
+      "reading_strategy": "Read response dist + correlation findings first, skip intermediate plot generation"
+    },
+    "model_evaluation.ipynb": {
+      "purpose": "Grid search results and model comparison for four models (ElasticNet, PoissonRegressor, RandomForest, HistGradientBoosting)",
+      "key_sections": [
+        "Train/test split details (seed=200294814, 80/20)",
+        "Grid search parameter spaces per model",
+        "5-fold CV RMSE comparison tables",
+        "Feature engineering notes (release_year, max_aggr_followers)",
+        "Why dropping main_artist for dancehall tracks"
+      ],
+      "estimated_context_usage": "~10-12K tokens for full evaluation",
+      "reading_strategy": "Focus on comparison results and feature selection logic"
+    },
+    "scoring_dancehall_tracks.ipynb": {
+      "purpose": "Apply trained models to dancehall tracks, identify top/lower predictions with PDP analysis",
+      "key_sections": [
+        "Model loading from joblib artifacts",
+        "Top 5 and lower 5 prediction findings",
+        "Partial dependence plots interpretation",
+        "Feature importance for dancehall vs hip-hop"
+      ],
+      "estimated_context_usage": "~6-8K tokens for full scoring analysis",
+      "reading_strategy": "Read prediction results + PDP insights, skip loading code"
+    }
+  },
+  "cross_reference_links": {
+    "data_processing_decisions": "main.ipynb -> model_evaluation.ipynb (feature lists)",
+    "model_selection_justification": "main.ipynb -> model_evaluation.ipynb (grid search results)",
+    "feature_dropping_explanation": "model_evaluation.ipynb:37-40 (main_artist issue)"
+  },
+  "quick_facts": {
+    "TARGET_RESPONSE": "popularity",
+    "SEED_VALUE": 200294814,
+    "SPLIT_RATIO": "80/20",
+    "MODEL_ARTIFACTS_DIR": "model_artifacts/",
+    "DROPPED_FEATURE": "main_artist (dancehall-specific constraint)"
+  }
+}
