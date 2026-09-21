@@ -19,7 +19,7 @@ from src.model_training.fit_model import (
 )
 
 
-def main():
+def train_models():
     # some path constants (change between audio and all features)
     BASE_MODEL_ARTIFACTS_PATH = Path("song-analysis") / "model_artifacts"
     # MODEL_TYPE = "audio_features"
@@ -167,4 +167,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    train_models()

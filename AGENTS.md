@@ -2,79 +2,69 @@
 
 ## Overview
 
-This repo analyzes Spotify track audio features to predict popularity of Trinidad dancehall tracks using a model trained on hip-hop data. It's implemented as a Python script with `main.py` at the root of `song-analysis/`.
+Predicts popularity of Trinidad dancehall tracks using a model trained on hip-hop audio features. Entry point: `song-analysis/train_models.py` (run from repo root).
 
-## Entry Points
-
-Run analysis from the parent directory:
+## Entry Point
 
 ```bash
-python song-analysis/main.py
+python song-analysis/train_models.py
 ```
 
-This reads data from `song-analysis/data/hip_hop-track-attributes.csv`, trains four models, and saves artifacts to `song-analysis/model_artifacts/`.
+Reads data from `song-analysis/data/hip_hop-track-attributes.csv`, trains four models, saves artifacts to `song-analysis/model_artifacts/`.
 
 ## Project Structure
 
 ```
 song-analysis/
-├── main.py                    # orchestration script
-├── requirements.txt           # Python dependencies (scikit-learn, pandas, matplotlib, etc.)
-├── data/                      # CSV datasets (hip_hop, dancehall hip-hop, trini_dancehall)
+├── train_models.py             # orchestration script
+├── requirements.txt            # Python dependencies (scikit-learn, pandas, etc.)
+├── data/                       # CSV datasets (hip_hop, dancehall hip-hop, trini_dancehall)
 ├── src/
-│   ├── data_processing/
-│   │   ├── __init__.py        # feature lists and dtype maps
-│   │   ├── base_transforms.py # train/test split + encoding/scaling
-│   │   └── feature_transforms.py # derived features (release_year, agg_popularity, etc.)
-│   ├── model_training/
-│   │   ├── fit_model.py       # grid search for ElasticNet, Poisson, RandomForest, HistGBM
-│   │   └── evaluate_model.py  # model evaluation metrics
-│   ├── visualization/         # plot training/test distributions, PDPs
-│   └── types/                 # TrackAttributeColumns enum
-├── model_artifacts/           # trained models, encoders, scalers, train/test splits
-└── docs/next_steps.md         # TODO list
+│   ├── data_processing/        # feature lists, transforms, splits
+│   ├── model_training/         # fit_model.py (grid search), evaluate_model.py
+│   └── types/                  # TrackAttributeColumns enum
+├── model_artifacts/            # trained models (.joblib), train/test splits
+└── docs/                       # next_steps.md TODO list
 ```
 
-## Key Constants
+## Pipeline
 
-Located in `src/data_processing/__init__.py`:
+1. Load CSV → 2. Add derived features (release_year, max_aggr_followers) → 3. Split/encode/scale (80/20, seed=200294814) → 4. Grid search models → 5. Save artifacts
 
-- `TARGET_RESPONSE = "popularity"`
-- `TARGET_AUDIO_FEATURE_LIST` (14 audio features)
-- `TRACK_METADATA_FEATURE_LIST` (release_year, max_aggr_followers)
-- `CATEGORICAL_COLS = ["mode", "key", "time_signature"]`
-- `AUDIO_FEATURE_DTYPE_MAP` / `ALL_FEATURE_DTYPE_MAP`
-
-## Model Pipeline
-
-1. Load CSV → 2. Add derived features → 3. Split/encode/scale (80/20, seed=200294814) → 4. Grid search models → 5. Save artifacts
-
-### Models trained (all use 5-fold CV with RMSE scoring):
+### Models (all use 5-fold CV with RMSE scoring):
 
 | Model | Search space |
 |-------|--------------|
-| ElasticNet | alpha, l1_ratio |
-| PoissonRegressor | alpha |
-| RandomForest | n_estimators (100-550), max_depth (4-8) |
-| HistGradientBoostingRegressor | max_iter, max_features |
+| ElasticNet | alpha: [0.1,1], l1_ratio: [0.1,1] |
+| PoissonRegressor | alpha: [0.1,1] |
+| RandomForest | n_estimators: 100-550, max_depth: 4-8, criterion="poisson" |
+| HistGradientBoostingRegressor | max_iter: 100-700, max_features: 0.4-1.0, loss="poisson" |
+
+## Key Constants (`src/data_processing/__init__.py`)
+
+- `TARGET_RESPONSE = "popularity"`
+- `TARGET_AUDIO_FEATURE_LIST` (14 features)
+- `TRACK_METADATA_FEATURE_LIST` (release_year, max_aggr_followers)
+- `CATEGORICAL_COLS = ["mode", "key", "time_signature"]`
+- `AUDIO_FEATURE_DTYPE_MAP`, `ALL_FEATURE_DTYPE_MAP`
 
 ## Important Notes
 
 ### Data sources
 
-Datasets are from [song-feature-extraction](https://github.com/rparmasar/song-feature-extraction). Always pull new data before re-running if you want fresh results.
+Datasets from [song-feature-extraction](https://github.com/rparmasar/song-feature-extraction). Pull new data before re-running for fresh results.
 
 ### Artifacts
 
-`joblib` files in `model_artifacts/` enable reproducibility without retraining. Don't modify these after training.
+`joblib` files in `model_artifacts/` enable reproducibility. Don't modify after training.
 
-### Dancehall-specific warning
+### Dancehall-specific constraint
 
-Dropping `main_artist` feature because it causes errors with dancehall tracks (see `feature_transforms.py:37-40`).
+Dropping `main_artist` feature because it causes errors with dancehall tracks (see `src/data_processing/feature_transforms.py:37-40`).
 
 ### Environment
 
-The repo uses a virtual environment in `env/`. Activate before installing dependencies or running scripts.
+Uses virtual environment in `env/`. Activate before installing dependencies or running scripts.
 
 ## Common Commands
 
@@ -83,23 +73,44 @@ The repo uses a virtual environment in `env/`. Activate before installing depend
 pip install -r song-analysis/requirements.txt
 
 # Run full pipeline
-cd /path/to/song-analysis && python song-analysis/main.py
+python song-analysis/train_models.py
 
-# After training, use loaded models to score new tracks via src/model_training/*.py
+# Use loaded models to score new tracks
+# via src/model_training/*.py
 ```
 
 ## Verification Checklist
 
-Before considering a change "complete":
+Before considering a change complete:
 
 1. Data: Confirm correct CSV file in `data/` directory
 2. Artifacts: Check `model_artifacts/` has expected `.joblib` files
 3. Models: Verify `train_times_df.csv` exists with all four models
 4. Reproducibility: Ensure seed=200294814 is used in any new splitting code
 
-## Architecture Notes
+## Notebook Reading Tips
 
-- Uses `GridSearchCV` with 5-fold CV for all models
-- Categorical features are one-hot encoded via `OneHotEncoder(handle_unknown="ignore")`
-- Numerical features use `MinMaxScaler` after encoding
-- All model fitting functions return `(model, train_time)` tuples for comparison
+## Notebook Reading Skill
+
+### How it works
+- Reads notebooks in chunks of max 100KB to preserve context
+- Prioritizes: markdown cells > imports > function definitions > key analysis
+- Skips: cell outputs, inline dataframes, verbose print statements
+- Tracks cumulative token usage and summarizes older sections when needed
+
+See `tests/test_notebook_reading_skill.py` for verification.
+
+### Available Notebooks
+
+| File | Size | Purpose |
+|------|------|---------|
+| `main.ipynb` | 3.6MB | Initial EDA, response distribution, feature correlations |
+| `model_evaluation.ipynb` | 548KB | Grid search results, model comparisons (4 models) |
+| `scoring_dancehall_tracks.ipynb` | 220KB | Apply trained models to dancehall tracks |
+
+### Guidelines
+- NEVER read entire notebooks at once
+- Maximum 100KB per read operation
+- Never include cell outputs (significant token overhead)
+- Always summarize verbose sections to key observations
+
